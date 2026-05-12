@@ -4,391 +4,359 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The SAS Timeline Jumping Framework</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,600;1,9..144,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600;1,700&family=Inter:wght@300;400;600&display=swap');
+
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
   --cyan:#1cd6e7;--magenta:#f62bd1;--purple:#8051c8;--amber:#f4a749;
-  --mid:#15122e;--card:rgba(30,26,62,0.6);
+  --bg:#0a0a1f;--mid:#15122e;--card:rgba(30,26,62,0.6);
   --text:#f8f5ff;--text-sec:rgba(248,245,255,0.72);--text-muted:rgba(248,245,255,0.48);
   --border:rgba(255,255,255,0.08);--glow-cyan:rgba(28,214,231,0.35);
+  --gradient:linear-gradient(135deg,#1cd6e7,#8051c8,#f62bd1);
   --text-grad:linear-gradient(135deg,#a8f4f9 0%,#b893f2 50%,#f78be8 100%);
-  --font-display:'Fraunces',Georgia,'Times New Roman',serif;
-  --font-body:'Inter',system-ui,sans-serif;
 }
 html{scroll-behavior:smooth}
 body{
-  font-family:var(--font-body);color:var(--text);min-height:100vh;
+  font-family:'Inter',sans-serif;font-weight:300;color:var(--text);min-height:100vh;
   background:
-    radial-gradient(ellipse at 20% 10%,rgba(28,214,231,0.12) 0%,transparent 45%),
-    radial-gradient(ellipse at 80% 60%,rgba(128,81,200,0.12) 0%,transparent 45%),
-    radial-gradient(ellipse at 50% 100%,rgba(246,43,209,0.10) 0%,transparent 50%),
+    radial-gradient(ellipse at 20% 10%,rgba(28,214,231,0.10) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 60%,rgba(128,81,200,0.10) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 100%,rgba(246,43,209,0.08) 0%,transparent 55%),
     linear-gradient(180deg,#0a0a1f 0%,#15122e 50%,#0a0a1f 100%);
-  padding:2rem 1.5rem 4rem;
-  position:relative;overflow-x:hidden;
-  cursor:none;
-}
-#stars-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
-#cursor-dot{position:fixed;width:28px;height:28px;border-radius:50%;border:2px solid var(--cyan);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 8px rgba(28,214,231,0.5);transition:left 0.06s,top 0.06s}
-#cursor-dot::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:4px;border-radius:50%;background:var(--cyan)}
-body>*:not(#stars-canvas):not(#cursor-dot){position:relative;z-index:1}
-
-.eyebrow{font-family:var(--font-body);font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:0.5rem}
-.eyebrow.magenta{color:var(--magenta)}
-.eyebrow.purple{color:var(--purple)}
-
-/* HERO */
-.hero{text-align:center;margin-bottom:3rem;padding-top:1rem}
-.hero h1{font-family:var(--font-display);font-weight:700;font-style:normal;font-size:clamp(36px,5vw,66px);line-height:1.1;margin-bottom:1rem;color:var(--text)}
-.hero h1 em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero .sub{font-family:var(--font-body);font-size:16px;color:var(--text-sec);max-width:520px;margin:0 auto}
-
-/* CHOICE POINT */
-.choice-section{display:flex;align-items:center;justify-content:center;gap:2rem;margin:0 auto 2.5rem;max-width:700px;background:var(--card);border:1px solid var(--glow-cyan);border-radius:20px;backdrop-filter:blur(20px);padding:28px 32px;box-shadow:0 0 40px rgba(28,214,231,0.12)}
-.choice-orb{width:72px;height:72px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle at 35% 30%,#f4e060,#f4a749 40%,#f62bd1 80%);box-shadow:0 0 30px rgba(244,167,73,0.5),0 0 60px rgba(246,43,209,0.2);animation:pulse 3s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 30px rgba(244,167,73,0.5),0 0 60px rgba(246,43,209,0.2)}50%{box-shadow:0 0 50px rgba(244,167,73,0.7),0 0 90px rgba(246,43,209,0.3)}}
-.choice-text h3{font-family:var(--font-display);font-weight:700;font-style:normal;font-size:24px;margin-bottom:6px;color:var(--text)}
-.choice-text h3 em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.choice-text p{font-size:14px;color:var(--text-sec);line-height:1.5;max-width:380px;font-family:var(--font-body)}
-
-/* DIAGRAM */
-.diagram-section{max-width:900px;margin:0 auto 3rem;background:var(--card);border:1px solid var(--border);border-radius:20px;backdrop-filter:blur(20px);padding:32px 28px;box-shadow:0 10px 40px rgba(0,0,0,0.4)}
-.diagram-section .diagram-title{font-family:var(--font-display);font-weight:700;font-style:normal;font-size:20px;color:var(--text);text-align:center;margin-bottom:6px}
-.diagram-section .diagram-title em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.diagram-section .diagram-sub{font-size:11px;color:var(--text-muted);text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px}
-.diagram-wrap{width:100%;overflow-x:auto}
-.diagram-svg{width:100%;min-width:560px;display:block}
-
-/* PHASE CARDS */
-.framework{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:2.5rem;max-width:1100px;margin-left:auto;margin-right:auto}
-.phase-card{background:var(--card);border:1px solid var(--border);border-radius:20px;backdrop-filter:blur(20px);padding:28px 24px;transition:all 0.3s;position:relative;overflow:hidden}
-.phase-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.3s;border-radius:20px}
-.phase-card.sel::before{background:radial-gradient(ellipse at 50% 0%,rgba(28,214,231,0.08),transparent 70%)}
-.phase-card.act::before{background:radial-gradient(ellipse at 50% 0%,rgba(246,43,209,0.08),transparent 70%)}
-.phase-card.stab::before{background:radial-gradient(ellipse at 50% 0%,rgba(128,81,200,0.08),transparent 70%)}
-.phase-card:hover::before{opacity:1}
-.phase-card.sel:hover{border-color:rgba(28,214,231,0.4);box-shadow:0 0 40px rgba(28,214,231,0.2),0 10px 40px rgba(0,0,0,0.4);transform:translateY(-3px)}
-.phase-card.act:hover{border-color:rgba(246,43,209,0.4);box-shadow:0 0 40px rgba(246,43,209,0.2),0 10px 40px rgba(0,0,0,0.4);transform:translateY(-3px)}
-.phase-card.stab:hover{border-color:rgba(128,81,200,0.4);box-shadow:0 0 40px rgba(128,81,200,0.2),0 10px 40px rgba(0,0,0,0.4);transform:translateY(-3px)}
-
-.phase-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-body);font-weight:700;font-size:14px;color:#0a0a1f;margin-bottom:16px}
-.sel .phase-num{background:var(--cyan)}
-.act .phase-num{background:var(--magenta)}
-.stab .phase-num{background:var(--purple)}
-
-.phase-card h2{font-family:var(--font-display);font-weight:700;font-style:normal;font-size:22px;margin-bottom:6px;line-height:1.2}
-.sel h2{color:var(--cyan)}
-.act h2{color:var(--magenta)}
-.stab h2{color:var(--purple)}
-
-.phase-tagline{font-size:13px;color:var(--text-sec);margin-bottom:20px;font-style:italic;font-family:var(--font-body)}
-.steps-list{list-style:none;display:flex;flex-direction:column;gap:10px}
-.step-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s}
-.step-item:hover{background:rgba(255,255,255,0.08);transform:translateX(3px)}
-.step-num{font-family:var(--font-body);font-size:11px;font-weight:700;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:#0a0a1f}
-.sel .step-num{background:rgba(28,214,231,0.9)}
-.act .step-num{background:rgba(246,43,209,0.9)}
-.stab .step-num{background:rgba(128,81,200,0.9)}
-.step-text{font-size:13px;font-weight:500;color:var(--text-sec);line-height:1.4;font-family:var(--font-body)}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(10,10,31,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1.5rem}
-.modal-overlay.open{display:flex}
-.modal{background:var(--mid);border:1px solid var(--glow-cyan);border-radius:24px;padding:36px;max-width:520px;width:100%;position:relative;box-shadow:0 0 60px rgba(28,214,231,0.15),0 30px 80px rgba(0,0,0,0.6);animation:slideUp 0.3s ease}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.modal-phase-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;color:#0a0a1f;font-family:var(--font-body)}
-.modal-step-num{font-family:var(--font-display);font-size:48px;font-weight:700;font-style:italic;margin-bottom:4px;line-height:1}
-.modal h3{font-family:var(--font-display);font-weight:700;font-style:normal;font-size:28px;line-height:1.2;margin-bottom:16px}
-.modal p{font-size:15px;color:var(--text-sec);line-height:1.7;margin-bottom:16px;font-family:var(--font-body)}
-.modal-tips{background:rgba(255,255,255,0.05);border-radius:12px;padding:16px 20px;border-left:3px solid}
-.modal-tips h4{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:10px;font-family:var(--font-body)}
-.modal-tips ul{list-style:none;display:flex;flex-direction:column;gap:8px}
-.modal-tips li{font-size:13px;color:var(--text-sec);display:flex;gap:8px;font-family:var(--font-body)}
-.modal-tips li::before{content:'✦';font-size:10px;margin-top:2px;flex-shrink:0}
-.modal-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.08);border:none;color:var(--text);font-size:18px;width:32px;height:32px;border-radius:50%;cursor:none;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
-.modal-close:hover{background:rgba(255,255,255,0.16)}
-
-.copyright{text-align:center;font-size:12px;color:var(--text-muted);margin-top:2rem;letter-spacing:1px;font-family:var(--font-body)}
-
-/* TAP RIPPLE */
-.tap-ripple{position:fixed;border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%) scale(0);animation:tapRipple 0.7s ease-out forwards}
-@keyframes tapRipple{
-  0%{transform:translate(-50%,-50%) scale(0);opacity:0.9}
-  100%{transform:translate(-50%,-50%) scale(1);opacity:0}
+  padding:2.5rem 1.5rem 4rem;
+  position:relative;overflow-x:hidden;cursor:none;
 }
 
-/* MOBILE */
+/* ── STARS ── */
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--dur,3s) ease-in-out infinite var(--delay,0s);opacity:0;}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(0.8);}50%{opacity:var(--op,0.6);transform:scale(1);}}
+
+/* ── CURSOR ── */
+.cursor-dot{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);animation:dotFade 0.6s ease forwards;}
+@keyframes dotFade{0%{opacity:0.9;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-50%) scale(0.2);}}
+.cursor-sparkle{position:fixed;pointer-events:none;z-index:9999;font-size:12px;transform:translate(-50%,-50%);animation:sparkleFade 0.8s ease forwards;}
+@keyframes sparkleFade{0%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(-50%,-120%) scale(0.5);}}
+@keyframes tapRipple{from{transform:scale(0);opacity:1;}to{transform:scale(2.5);opacity:0;}}
+
+body>*:not(.stars):not(.cursor-dot):not(.cursor-sparkle){position:relative;z-index:1;}
+
+/* ── HERO ── */
+.hero{text-align:center;margin-bottom:3rem;padding-top:0.5rem}
+.hero-eyebrow{font-family:'Inter',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:var(--cyan);margin-bottom:1.2rem;text-shadow:0 0 12px rgba(28,214,231,0.7);}
+.hero h1{font-family:'Fraunces',serif;font-weight:700;font-style:normal;font-size:clamp(36px,5.5vw,68px);line-height:1.1;margin-bottom:1.2rem;color:var(--text);}
+.hero h1 em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero-sub{font-family:'Inter',sans-serif;font-weight:300;font-size:15px;color:var(--text-sec);max-width:520px;margin:0 auto;line-height:1.75;}
+
+/* ── CHOICE POINT CARD ── */
+.choice-card{
+  display:flex;align-items:center;gap:2rem;
+  margin:0 auto 2.5rem;max-width:700px;
+  background:var(--card);border:1px solid var(--glow-cyan);
+  border-radius:20px;backdrop-filter:blur(20px);
+  padding:28px 32px;
+  box-shadow:0 0 40px rgba(28,214,231,0.1);
+}
+.choice-orb{
+  width:72px;height:72px;border-radius:50%;flex-shrink:0;
+  background:radial-gradient(circle at 35% 30%,#f4e060,#f4a749 40%,#f62bd1 80%);
+  box-shadow:0 0 30px rgba(244,167,73,0.5),0 0 60px rgba(246,43,209,0.2);
+  animation:orbPulse 3s ease-in-out infinite;
+}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 30px rgba(244,167,73,0.5),0 0 60px rgba(246,43,209,0.2);}50%{box-shadow:0 0 50px rgba(244,167,73,0.7),0 0 90px rgba(246,43,209,0.3);}}
+.choice-text-eyebrow{font-family:'Inter',sans-serif;font-weight:600;font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;}
+.choice-text h3{font-family:'Fraunces',serif;font-weight:700;font-style:normal;font-size:22px;margin-bottom:8px;color:var(--text);}
+.choice-text h3 em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.choice-text p{font-family:'Inter',sans-serif;font-weight:300;font-size:14px;color:var(--text-sec);line-height:1.7;max-width:380px;}
+
+/* ── DIAGRAM ── */
+.diagram-card{
+  max-width:900px;margin:0 auto 3rem;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;backdrop-filter:blur(20px);
+  padding:32px 28px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.35);
+}
+.diagram-header{text-align:center;margin-bottom:24px;}
+.diagram-header-title{font-family:'Fraunces',serif;font-weight:700;font-style:normal;font-size:20px;color:var(--text);margin-bottom:6px;}
+.diagram-header-title em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.diagram-header-sub{font-family:'Inter',sans-serif;font-weight:600;font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--text-muted);}
+.diagram-wrap{width:100%;overflow-x:auto;}
+.diagram-svg{width:100%;min-width:560px;display:block;}
+
+/* ── PHASE CARDS ── */
+.framework{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:1.5rem;margin-bottom:2.5rem;
+  max-width:1100px;margin-left:auto;margin-right:auto;
+}
+.phase-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;backdrop-filter:blur(20px);
+  padding:28px 24px;transition:all 0.3s;
+  position:relative;overflow:hidden;
+}
+.phase-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.3s;border-radius:20px;}
+.phase-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0.6;}
+.phase-card.sel::before{background:radial-gradient(ellipse at 50% 0%,rgba(28,214,231,0.08),transparent 70%);}
+.phase-card.sel::after{background:var(--cyan);}
+.phase-card.act::before{background:radial-gradient(ellipse at 50% 0%,rgba(246,43,209,0.08),transparent 70%);}
+.phase-card.act::after{background:var(--magenta);}
+.phase-card.stab::before{background:radial-gradient(ellipse at 50% 0%,rgba(128,81,200,0.08),transparent 70%);}
+.phase-card.stab::after{background:var(--purple);}
+.phase-card:hover::before{opacity:1;}
+.phase-card.sel:hover{border-color:rgba(28,214,231,0.35);box-shadow:0 0 32px rgba(28,214,231,0.15),0 10px 40px rgba(0,0,0,0.35);transform:translateY(-3px);}
+.phase-card.act:hover{border-color:rgba(246,43,209,0.35);box-shadow:0 0 32px rgba(246,43,209,0.15),0 10px 40px rgba(0,0,0,0.35);transform:translateY(-3px);}
+.phase-card.stab:hover{border-color:rgba(128,81,200,0.35);box-shadow:0 0 32px rgba(128,81,200,0.15),0 10px 40px rgba(0,0,0,0.35);transform:translateY(-3px);}
+
+.phase-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;
+  font-family:'Inter',sans-serif;font-weight:600;font-size:13px;
+  color:#0a0a1f;margin-bottom:16px;
+}
+.sel .phase-badge{background:var(--cyan);}
+.act .phase-badge{background:var(--magenta);}
+.stab .phase-badge{background:var(--purple);}
+
+.phase-eyebrow{font-family:'Inter',sans-serif;font-weight:600;font-size:9px;letter-spacing:0.24em;text-transform:uppercase;margin-bottom:6px;}
+.sel .phase-eyebrow{color:var(--cyan);}
+.act .phase-eyebrow{color:var(--magenta);}
+.stab .phase-eyebrow{color:var(--purple);}
+
+.phase-card h2{font-family:'Fraunces',serif;font-weight:700;font-style:normal;font-size:24px;margin-bottom:4px;line-height:1.2;}
+.sel h2{color:var(--cyan);}
+.act h2{color:var(--magenta);}
+.stab h2{color:var(--purple);}
+
+.phase-tagline{font-family:'Inter',sans-serif;font-weight:300;font-size:13px;font-style:italic;color:var(--text-sec);margin-bottom:20px;}
+
+/* ── STEP LIST ── */
+.steps-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.step-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);border-radius:10px;
+  cursor:pointer;transition:all 0.2s;
+}
+.step-item:hover{background:rgba(255,255,255,0.07);transform:translateX(3px);}
+.step-pill{
+  font-family:'Inter',sans-serif;font-weight:600;font-size:10px;
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:#0a0a1f;margin-top:1px;
+}
+.sel .step-pill{background:rgba(28,214,231,0.9);}
+.act .step-pill{background:rgba(246,43,209,0.9);}
+.stab .step-pill{background:rgba(128,81,200,0.9);}
+.step-label{font-family:'Inter',sans-serif;font-weight:400;font-size:13px;color:var(--text-sec);line-height:1.4;}
+
+/* ── MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(10,10,31,0.85);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;padding:1.5rem;
+}
+.modal-overlay.open{display:flex;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{
+  background:var(--mid);border:1px solid var(--glow-cyan);
+  border-radius:24px;padding:36px;max-width:520px;width:100%;
+  position:relative;
+  box-shadow:0 0 60px rgba(28,214,231,0.12),0 30px 80px rgba(0,0,0,0.6);
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.modal-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 14px;border-radius:20px;
+  font-family:'Inter',sans-serif;font-size:9px;font-weight:600;
+  letter-spacing:0.22em;text-transform:uppercase;
+  margin-bottom:16px;color:#0a0a1f;
+}
+.modal-step-num{
+  font-family:'Fraunces',serif;font-size:52px;font-weight:700;font-style:italic;
+  margin-bottom:4px;line-height:1;
+  background:var(--gradient);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.modal h3{
+  font-family:'Fraunces',serif;font-weight:700;font-style:normal;
+  font-size:28px;line-height:1.2;margin-bottom:14px;
+}
+.modal-desc{font-family:'Inter',sans-serif;font-weight:300;font-size:15px;color:var(--text-sec);line-height:1.75;margin-bottom:18px;}
+.modal-tips{
+  background:rgba(255,255,255,0.04);border-radius:12px;
+  padding:18px 20px;border-left:3px solid;
+}
+.modal-tips-title{
+  font-family:'Inter',sans-serif;font-weight:600;font-size:9px;
+  letter-spacing:0.22em;text-transform:uppercase;margin-bottom:12px;
+}
+.modal-tips-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.modal-tips-list li{
+  font-family:'Inter',sans-serif;font-weight:300;font-size:13px;
+  color:var(--text-sec);display:flex;gap:10px;line-height:1.6;
+}
+.modal-tips-list li span:first-child{font-size:10px;margin-top:3px;flex-shrink:0;}
+.modal-close{
+  position:absolute;top:20px;right:20px;
+  background:rgba(255,255,255,0.07);border:none;color:var(--text);
+  font-size:16px;width:32px;height:32px;border-radius:50%;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background 0.2s;
+}
+.modal-close:hover{background:rgba(255,255,255,0.14);}
+
+/* ── FOOTER ── */
+.footer-cta{text-align:center;margin-top:2.5rem;margin-bottom:1.25rem;}
+.btn-skool{
+  display:inline-block;width:100%;max-width:640px;
+  background:var(--gradient);
+  color:#fff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:0.18em;text-transform:uppercase;text-decoration:none;
+  padding:18px 32px;border-radius:30px;
+  box-shadow:0 10px 30px rgba(28,214,231,0.3),0 4px 20px rgba(246,43,209,0.18);
+  transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s;
+}
+.btn-skool:hover{transform:translateY(-2px);opacity:0.9;box-shadow:0 16px 40px rgba(28,214,231,0.4),0 6px 24px rgba(246,43,209,0.28);}
+
+.copyright{text-align:center;font-family:'Inter',sans-serif;font-weight:300;font-size:11px;letter-spacing:0.08em;color:var(--text-muted);margin-top:1rem;}
+
+/* ── MOBILE ── */
 @media(max-width:800px){
-  body{padding:1.25rem 1rem 3rem;cursor:auto}
-  #cursor-dot{display:none}
-
-  .hero{margin-bottom:2rem;padding-top:0.5rem}
-  .hero h1{font-size:clamp(32px,8vw,52px)}
-  .hero .sub{font-size:14px;padding:0 0.5rem}
-
-  .choice-section{
-    flex-direction:column;text-align:center;
-    padding:20px;gap:1.25rem;margin-bottom:2rem;
-  }
-  .choice-orb{width:56px;height:56px}
-  .choice-text p{max-width:100%;font-size:13px}
-  .choice-text h3{font-size:20px}
-  .eyebrow{font-size:10px}
-
-  .diagram-section{padding:20px 14px;margin-bottom:2rem}
-  .diagram-section .diagram-title{font-size:17px}
-  .diagram-section .diagram-sub{font-size:10px;letter-spacing:1.5px}
-  .diagram-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .diagram-svg{min-width:500px}
-
-  .framework{
-    display:flex;flex-direction:column;gap:1rem;
-    margin-bottom:2rem;padding:0;
-  }
-  .phase-card{padding:20px 18px}
-  .phase-card h2{font-size:19px}
-  .phase-card:hover{transform:none}
-  .phase-card.sel:hover,
-  .phase-card.act:hover,
-  .phase-card.stab:hover{transform:none}
-
-  .step-item{padding:10px 10px}
-  .step-text{font-size:12.5px}
-
-  .modal{padding:24px 20px;border-radius:18px;max-height:88vh;overflow-y:auto}
-  .modal h3{font-size:22px}
-  .modal p{font-size:14px}
-  .modal-step-num{font-size:36px}
-  .modal-tips{padding:12px 14px}
+  body{padding:1.5rem 1rem 3rem;cursor:auto;}
+  .hero{margin-bottom:2rem;}
+  .choice-card{flex-direction:column;text-align:center;padding:22px 20px;gap:1.25rem;margin-bottom:2rem;}
+  .choice-text p{max-width:100%;}
+  .diagram-card{padding:22px 14px;margin-bottom:2rem;}
+  .framework{display:flex;flex-direction:column;gap:1rem;margin-bottom:2rem;}
+  .phase-card{padding:20px 18px;}
+  .phase-card:hover,.phase-card.sel:hover,.phase-card.act:hover,.phase-card.stab:hover{transform:none;}
+  .modal{padding:24px 20px;border-radius:18px;max-height:88vh;overflow-y:auto;}
+  .modal h3{font-size:22px;}
+  .modal-step-num{font-size:38px;}
 }
-
 @media(max-width:420px){
-  .hero h1{font-size:28px}
-  .hero .sub{font-size:13px}
-  .choice-text h3{font-size:18px}
-  .phase-card h2{font-size:17px}
+  .hero h1{font-size:30px;}
+  .phase-card h2{font-size:20px;}
 }
 </style>
 </head>
 <body>
 
-<canvas id="stars-canvas"></canvas>
-<div id="cursor-dot"></div>
+<div class="stars" id="stars"></div>
 
 <!-- HERO -->
 <div class="hero">
+  <div class="hero-eyebrow">✦ Timeline Jumpers ✦</div>
   <h1>The SAS <em>Timeline</em><br>Jumping Framework</h1>
-  <p class="sub">A 12-step energetic methodology for detaching from your current reality and stabilizing the timeline you choose.</p>
+  <p class="hero-sub">A 12-step energetic methodology for detaching from your current reality and stabilizing the timeline you choose.</p>
 </div>
 
 <!-- CHOICE POINT -->
-<div class="choice-section">
+<div class="choice-card">
   <div class="choice-orb"></div>
   <div class="choice-text">
-    <p class="eyebrow" style="text-align:left">✦ The Beginning</p>
+    <div class="choice-text-eyebrow">✦ The Beginning</div>
     <h3>The <em>Choice</em> Point</h3>
     <p>Everything begins here. The moment you decide to stop accepting the default timeline and consciously choose a new one.<br><br>From this point, two paths diverge. Momentum slows on the old reality, and accelerated forward momentum ignites the new.</p>
   </div>
 </div>
 
-<!-- FREQUENCY DIAGRAM -->
-<div class="diagram-section">
-  <p class="diagram-title">All <em>Timelines</em> Exist Now</p>
-  <p class="diagram-sub">✦ Your frequency determines which one you inhabit ✦</p>
+<!-- DIAGRAM -->
+<div class="diagram-card">
+  <div class="diagram-header">
+    <div class="diagram-header-title">All <em>Timelines</em> Exist Now</div>
+    <div class="diagram-header-sub">✦ Your frequency determines which one you inhabit ✦</div>
+  </div>
   <div class="diagram-wrap">
     <svg class="diagram-svg" viewBox="0 0 820 500" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
       <defs>
-        <linearGradient id="tg1" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#1cd6e7" stop-opacity="0.15"/>
-          <stop offset="50%" stop-color="#1cd6e7" stop-opacity="0.55"/>
-          <stop offset="100%" stop-color="#1cd6e7" stop-opacity="0.1"/>
-        </linearGradient>
-        <linearGradient id="tg2" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#4ac8d4" stop-opacity="0.1"/>
-          <stop offset="50%" stop-color="#4ac8d4" stop-opacity="0.4"/>
-          <stop offset="100%" stop-color="#4ac8d4" stop-opacity="0.08"/>
-        </linearGradient>
-        <linearGradient id="tg3" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#8051c8" stop-opacity="0.1"/>
-          <stop offset="50%" stop-color="#8051c8" stop-opacity="0.45"/>
-          <stop offset="100%" stop-color="#8051c8" stop-opacity="0.08"/>
-        </linearGradient>
-        <linearGradient id="tg4" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#f62bd1" stop-opacity="0.1"/>
-          <stop offset="50%" stop-color="#f62bd1" stop-opacity="0.5"/>
-          <stop offset="100%" stop-color="#f62bd1" stop-opacity="0.08"/>
-        </linearGradient>
-        <linearGradient id="tg5" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#f4a749" stop-opacity="0.08"/>
-          <stop offset="50%" stop-color="#f4a749" stop-opacity="0.3"/>
-          <stop offset="100%" stop-color="#f4a749" stop-opacity="0.06"/>
-        </linearGradient>
-        <linearGradient id="tg6" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#6b7c9e" stop-opacity="0.06"/>
-          <stop offset="50%" stop-color="#6b7c9e" stop-opacity="0.18"/>
-          <stop offset="100%" stop-color="#6b7c9e" stop-opacity="0.04"/>
-        </linearGradient>
-        <linearGradient id="tg7" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#3a3a5c" stop-opacity="0.04"/>
-          <stop offset="50%" stop-color="#3a3a5c" stop-opacity="0.12"/>
-          <stop offset="100%" stop-color="#3a3a5c" stop-opacity="0.03"/>
-        </linearGradient>
-        <linearGradient id="orbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#f4e060"/>
-          <stop offset="50%" stop-color="#f4a749"/>
-          <stop offset="100%" stop-color="#f62bd1"/>
-        </linearGradient>
-        <linearGradient id="activeBeam" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#1cd6e7" stop-opacity="0"/>
-          <stop offset="40%" stop-color="#1cd6e7" stop-opacity="0.8"/>
-          <stop offset="100%" stop-color="#1cd6e7" stop-opacity="0.15"/>
-        </linearGradient>
-        <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#a8f4f9"/>
-          <stop offset="50%" stop-color="#b893f2"/>
-          <stop offset="100%" stop-color="#f78be8"/>
-        </linearGradient>
-        <!-- Glow filter for the active timeline -->
-        <filter id="lineGlow" x="-20%" y="-400%" width="140%" height="900%">
-          <feGaussianBlur stdDeviation="3" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="orbGlow" x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="10" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <!-- Ripple filter for You dot -->
-        <filter id="ripple" x="-100%" y="-100%" width="300%" height="300%">
-          <feGaussianBlur stdDeviation="5" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
+        <linearGradient id="tg1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1cd6e7" stop-opacity="0.15"/><stop offset="50%" stop-color="#1cd6e7" stop-opacity="0.55"/><stop offset="100%" stop-color="#1cd6e7" stop-opacity="0.1"/></linearGradient>
+        <linearGradient id="tg2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#4ac8d4" stop-opacity="0.1"/><stop offset="50%" stop-color="#4ac8d4" stop-opacity="0.4"/><stop offset="100%" stop-color="#4ac8d4" stop-opacity="0.08"/></linearGradient>
+        <linearGradient id="tg3" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#8051c8" stop-opacity="0.1"/><stop offset="50%" stop-color="#8051c8" stop-opacity="0.45"/><stop offset="100%" stop-color="#8051c8" stop-opacity="0.08"/></linearGradient>
+        <linearGradient id="tg4" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f62bd1" stop-opacity="0.1"/><stop offset="50%" stop-color="#f62bd1" stop-opacity="0.5"/><stop offset="100%" stop-color="#f62bd1" stop-opacity="0.08"/></linearGradient>
+        <linearGradient id="tg5" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f4a749" stop-opacity="0.08"/><stop offset="50%" stop-color="#f4a749" stop-opacity="0.3"/><stop offset="100%" stop-color="#f4a749" stop-opacity="0.06"/></linearGradient>
+        <linearGradient id="tg6" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6b7c9e" stop-opacity="0.06"/><stop offset="50%" stop-color="#6b7c9e" stop-opacity="0.18"/><stop offset="100%" stop-color="#6b7c9e" stop-opacity="0.04"/></linearGradient>
+        <linearGradient id="tg7" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3a3a5c" stop-opacity="0.04"/><stop offset="50%" stop-color="#3a3a5c" stop-opacity="0.12"/><stop offset="100%" stop-color="#3a3a5c" stop-opacity="0.03"/></linearGradient>
+        <linearGradient id="orbGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f4e060"/><stop offset="50%" stop-color="#f4a749"/><stop offset="100%" stop-color="#f62bd1"/></linearGradient>
+        <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#a8f4f9"/><stop offset="50%" stop-color="#b893f2"/><stop offset="100%" stop-color="#f78be8"/></linearGradient>
+        <filter id="lineGlow" x="-20%" y="-400%" width="140%" height="900%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="orbGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="10" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       </defs>
-
-      <!-- ── Background: all timelines as horizontal wave bands ── -->
-      <!-- Each is a sine-wave path with a gradient fill, stacked vertically -->
-      <!-- Timeline 7 (lowest freq, dormant) -->
       <path d="M0,455 Q100,460 200,455 Q300,450 400,455 Q500,460 600,455 Q700,450 820,455 L820,470 Q700,465 600,470 Q500,475 400,470 Q300,465 200,470 Q100,475 0,470 Z" fill="url(#tg7)"/>
       <path d="M0,455 Q100,460 200,455 Q300,450 400,455 Q500,460 600,455 Q700,450 820,455" fill="none" stroke="rgba(58,58,92,0.2)" stroke-width="1" stroke-dasharray="4,6"/>
-
-      <!-- Timeline 6 -->
       <path d="M0,405 Q120,415 200,405 Q320,395 420,410 Q540,420 650,405 Q740,395 820,405 L820,420 Q740,410 650,420 Q540,435 420,425 Q320,410 200,420 Q120,430 0,420 Z" fill="url(#tg6)"/>
       <path d="M0,405 Q120,415 200,405 Q320,395 420,410 Q540,420 650,405 Q740,395 820,405" fill="none" stroke="rgba(107,124,158,0.25)" stroke-width="1" stroke-dasharray="4,5"/>
-
-      <!-- Timeline 5 (amber, getting warmer) -->
       <path d="M0,348 Q80,340 180,352 Q280,362 380,348 Q480,335 580,348 Q680,360 820,345 L820,362 Q680,375 580,363 Q480,350 380,363 Q280,377 180,367 Q80,355 0,363 Z" fill="url(#tg5)"/>
       <path d="M0,348 Q80,340 180,352 Q280,362 380,348 Q480,335 580,348 Q680,360 820,345" fill="none" stroke="rgba(244,167,73,0.3)" stroke-width="1.2" stroke-dasharray="3,5"/>
-
-      <!-- Timeline 4 (magenta, high energy) -->
       <path d="M0,288 Q60,275 160,292 Q260,308 360,285 Q460,263 560,288 Q660,310 820,280 L820,298 Q660,325 560,303 Q460,278 360,300 Q260,323 160,307 Q60,290 0,303 Z" fill="url(#tg4)"/>
       <path d="M0,288 Q60,275 160,292 Q260,308 360,285 Q460,263 560,288 Q660,310 820,280" fill="none" stroke="rgba(246,43,209,0.4)" stroke-width="1.5" stroke-dasharray="3,4"/>
-
-      <!-- Timeline 3 (purple) -->
       <path d="M0,228 Q70,210 170,230 Q270,250 370,222 Q470,195 570,225 Q670,252 820,215 L820,234 Q670,268 570,240 Q470,210 370,238 Q270,265 170,245 Q70,225 0,244 Z" fill="url(#tg3)"/>
       <path d="M0,228 Q70,210 170,230 Q270,250 370,222 Q470,195 570,225 Q670,252 820,215" fill="none" stroke="rgba(128,81,200,0.5)" stroke-width="1.8" stroke-dasharray="2,4"/>
-
-      <!-- Timeline 2 (lighter cyan, near-active) -->
       <path d="M0,162 Q90,140 185,165 Q275,188 375,155 Q470,123 570,158 Q665,190 820,148 L820,168 Q665,205 570,173 Q470,138 375,170 Q275,203 185,180 Q90,155 0,178 Z" fill="url(#tg2)"/>
       <path d="M0,162 Q90,140 185,165 Q275,188 375,155 Q470,123 570,158 Q665,190 820,148" fill="none" stroke="rgba(74,200,212,0.45)" stroke-width="2" stroke-dasharray="2,3"/>
-
-      <!-- Timeline 1 — ACTIVE — cyan, brightest, thickest -->
       <path d="M0,95 Q60,72 155,98 Q245,122 345,88 Q445,55 550,90 Q645,122 820,75 L820,100 Q645,142 550,108 Q445,70 345,104 Q245,137 155,113 Q60,87 0,110 Z" fill="url(#tg1)"/>
-      <!-- Glow line for active timeline -->
       <path d="M0,95 Q60,72 155,98 Q245,122 345,88 Q445,55 550,90 Q645,122 820,75" fill="none" stroke="#1cd6e7" stroke-width="2.5" filter="url(#lineGlow)"/>
       <path d="M0,95 Q60,72 155,98 Q245,122 345,88 Q445,55 550,90 Q645,122 820,75" fill="none" stroke="rgba(28,214,231,0.9)" stroke-width="1.5"/>
-
-      <!-- ── Vertical axis: frequency label ── -->
       <text font-family="Inter,sans-serif" font-size="9" font-weight="600" letter-spacing="2" fill="rgba(248,245,255,0.3)" text-anchor="middle" transform="rotate(-90,22,280)">FREQUENCY</text>
-      <!-- Frequency arrow -->
       <line x1="32" y1="450" x2="32" y2="75" stroke="rgba(248,245,255,0.15)" stroke-width="1"/>
       <polygon points="32,68 27,82 37,82" fill="rgba(248,245,255,0.2)"/>
-
-
-
-      <!-- ── YOU ARE HERE dot — sits on timeline 4 (parallel/current reality) ── -->
-      <circle cx="500" cy="287" r="18" fill="none" stroke="rgba(246,43,209,0.3)" stroke-width="1">
-        <animate attributeName="r" values="10;22;10" dur="3s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.5;0;0.5" dur="3s" repeatCount="indefinite"/>
-      </circle>
+      <circle cx="500" cy="287" r="18" fill="none" stroke="rgba(246,43,209,0.3)" stroke-width="1"><animate attributeName="r" values="10;22;10" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="3s" repeatCount="indefinite"/></circle>
       <circle cx="500" cy="287" r="10" fill="rgba(246,43,209,0.25)" stroke="#f62bd1" stroke-width="1.5"/>
       <circle cx="500" cy="287" r="4" fill="#f62bd1"/>
-      <!-- Label above -->
       <rect x="440" y="254" width="120" height="22" rx="5" fill="rgba(246,43,209,0.15)"/>
       <text x="500" y="269" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#f62bd1">YOU ARE HERE</text>
-
-      <!-- Dashed arrow from You Are Here straight up to Where You Want To Be -->
       <line x1="500" y1="272" x2="500" y2="108" stroke="rgba(248,245,255,0.25)" stroke-width="1.2" stroke-dasharray="4,4"/>
       <polygon points="500,96 494,112 506,112" fill="rgba(248,245,255,0.3)"/>
-
-      <!-- ── WHERE YOU WANT TO BE orb — directly above YOU ARE HERE on top timeline ── -->
-      <circle cx="500" cy="90" r="32" fill="none" stroke="#1cd6e7" stroke-width="0.5" opacity="0.2">
-        <animate attributeName="r" values="18;38;18" dur="3s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="500" cy="90" r="22" fill="none" stroke="#1cd6e7" stroke-width="0.8" opacity="0.3">
-        <animate attributeName="r" values="12;26;12" dur="3s" begin="0.5s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.5;0;0.5" dur="3s" begin="0.5s" repeatCount="indefinite"/>
-      </circle>
+      <circle cx="500" cy="90" r="32" fill="none" stroke="#1cd6e7" stroke-width="0.5" opacity="0.2"><animate attributeName="r" values="18;38;18" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite"/></circle>
+      <circle cx="500" cy="90" r="22" fill="none" stroke="#1cd6e7" stroke-width="0.8" opacity="0.3"><animate attributeName="r" values="12;26;12" dur="3s" begin="0.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="3s" begin="0.5s" repeatCount="indefinite"/></circle>
       <circle cx="500" cy="90" r="14" fill="url(#orbGrad)" filter="url(#orbGlow)" opacity="0.7"/>
       <circle cx="500" cy="90" r="9" fill="url(#orbGrad)"/>
       <circle cx="500" cy="90" r="4" fill="#fff8e0"/>
-      <!-- Label below orb -->
       <rect x="400" y="106" width="200" height="22" rx="5" fill="rgba(28,214,231,0.12)"/>
       <text x="500" y="121" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#1cd6e7">WHERE YOU WANT TO BE</text>
-
-      <!-- ── Frequency tuning label ── -->
       <text x="180" y="42" font-family="Fraunces,Georgia,serif" font-size="13" font-weight="700" font-style="italic" fill="url(#textGrad)">Tune your frequency.</text>
       <text x="180" y="58" font-family="Inter,sans-serif" font-size="9" fill="rgba(248,245,255,0.5)">All timelines already exist. You select by resonance.</text>
-
-      <!-- ── Small resonance echoes at x=500 ── -->
       <circle cx="500" cy="162" r="5" fill="rgba(74,200,212,0.25)"/>
       <circle cx="500" cy="228" r="4" fill="rgba(128,81,200,0.2)"/>
       <circle cx="500" cy="350" r="3" fill="rgba(244,167,73,0.12)"/>
       <circle cx="500" cy="408" r="2.5" fill="rgba(107,124,158,0.1)"/>
       <circle cx="500" cy="458" r="2" fill="rgba(58,58,92,0.08)"/>
-
-      <!-- ── Bottom note ── -->
       <text x="410" y="492" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="rgba(248,245,255,0.3)">Time is not linear. Every version of your life exists simultaneously.</text>
     </svg>
   </div>
 </div>
 
 <!-- PHASE CARDS -->
-<div class="framework" id="framework">
+<div class="framework">
   <div class="phase-card sel">
-    <div class="phase-num">I</div>
-    <p class="eyebrow">✦ Phase One</p>
+    <div class="phase-badge">I</div>
+    <div class="phase-eyebrow">✦ Phase One</div>
     <h2>Selection</h2>
     <p class="phase-tagline">Detach and choose</p>
     <ul class="steps-list" id="sel-steps"></ul>
   </div>
   <div class="phase-card act">
-    <div class="phase-num">II</div>
-    <p class="eyebrow magenta">✦ Phase Two</p>
+    <div class="phase-badge">II</div>
+    <div class="phase-eyebrow">✦ Phase Two</div>
     <h2>Activation</h2>
     <p class="phase-tagline">Initiate the jump</p>
     <ul class="steps-list" id="act-steps"></ul>
   </div>
   <div class="phase-card stab">
-    <div class="phase-num">III</div>
-    <p class="eyebrow purple">✦ Phase Three</p>
+    <div class="phase-badge">III</div>
+    <div class="phase-eyebrow">✦ Phase Three</div>
     <h2>Stabilization</h2>
     <p class="phase-tagline">Stabilize the new timeline</p>
     <ul class="steps-list" id="stab-steps"></ul>
   </div>
 </div>
 
-<div style="text-align:center;margin-top:2.5rem;margin-bottom:1.25rem">
-  <a href="https://www.skool.com/timeline-jumpers-9976/classroom" target="_blank" rel="noopener" style="
-    display:inline-block;width:100%;max-width:640px;
-    background:linear-gradient(135deg,#1cd6e7 0%,#8051c8 55%,#f62bd1 100%);
-    color:#fff;font-family:'Inter',system-ui,sans-serif;font-size:15px;font-weight:700;
-    letter-spacing:2.5px;text-transform:uppercase;text-decoration:none;
-    padding:18px 32px;border-radius:30px;
-    box-shadow:0 10px 30px rgba(28,214,231,0.35),0 4px 20px rgba(246,43,209,0.2);
-    transition:transform 0.2s,box-shadow 0.2s;
-  " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 16px 40px rgba(28,214,231,0.45),0 6px 24px rgba(246,43,209,0.3)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 10px 30px rgba(28,214,231,0.35),0 4px 20px rgba(246,43,209,0.2)'">
-    ✦ &nbsp; Take Me Back To Skool &nbsp; ✦
-  </a>
+<div class="footer-cta">
+  <a href="https://ceydaseren.github.io/timelinejumpingstep1/" target="_blank" rel="noopener" class="btn-skool">✦ &nbsp; Jump Into Step 1 &nbsp; ✦</a>
 </div>
 <p class="copyright">© 2026 Ceyda Seren. All rights reserved.</p>
 
@@ -396,110 +364,67 @@ body>*:not(#stars-canvas):not(#cursor-dot){position:relative;z-index:1}
 <div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
-    <div class="modal-phase-badge" id="modal-badge"></div>
+    <div class="modal-badge" id="modal-badge"></div>
     <div class="modal-step-num" id="modal-step-num"></div>
     <h3 id="modal-title"></h3>
-    <p id="modal-desc"></p>
+    <p class="modal-desc" id="modal-desc"></p>
     <div class="modal-tips" id="modal-tips-box">
-      <h4 id="modal-tips-title"></h4>
-      <ul id="modal-tips-list"></ul>
+      <div class="modal-tips-title" id="modal-tips-title"></div>
+      <ul class="modal-tips-list" id="modal-tips-list"></ul>
     </div>
   </div>
 </div>
 
 <script>
-/* ── Canvas setup ── */
-const canvas=document.getElementById('stars-canvas');
-const ctx=canvas.getContext('2d');
-function resize(){
-  canvas.width=window.innerWidth;
-  canvas.height=Math.max(document.body.scrollHeight,window.innerHeight);
+// ── STARS ──
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 200; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 1.8 + 0.3;
+  s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${2+Math.random()*4}s;--delay:${Math.random()*5}s;--op:${0.2+Math.random()*0.6};`;
+  starsEl.appendChild(s);
 }
-resize();
-window.addEventListener('resize',()=>{resize()});
 
-/* ── Stars ── */
-const SC=['rgba(255,252,232,','rgba(28,214,231,','rgba(246,43,209,','rgba(128,81,200,'];
-const stars=Array.from({length:350},()=>({
-  x:Math.random()*window.innerWidth,
-  y:Math.random()*6000,
-  r:Math.random()*1.7+0.15,
-  bA:Math.random()*0.55+0.15,
-  spd:Math.random()*0.007+0.002,
-  off:Math.random()*Math.PI*2,
-  col:SC[Math.random()<0.72?0:Math.floor(Math.random()*SC.length)]
-}));
-
-/* ── Cursor trail ── */
-const cursorDot=document.getElementById('cursor-dot');
-const trail=[];
-const TC=['#1cd6e7','#f62bd1','#8051c8','#fffce8','#f4a749'];
-const RGBA={
-  '#1cd6e7':[28,214,231],
-  '#f62bd1':[246,43,209],
-  '#8051c8':[128,81,200],
-  '#fffce8':[255,252,232],
-  '#f4a749':[244,167,73]
-};
-
-document.addEventListener('mousemove',e=>{
-  cursorDot.style.left=e.clientX+'px';
-  cursorDot.style.top=e.clientY+'px';
-  const c=TC[Math.floor(Math.random()*TC.length)];
-  trail.push({
-    x:e.clientX+window.scrollX,
-    y:e.clientY+window.scrollY,
-    r:Math.random()*2.2+0.6,
-    a:0.85,
-    dec:Math.random()*0.035+0.018,
-    c,
-    vx:(Math.random()-0.5)*0.9,
-    vy:(Math.random()-0.5)*0.9
-  });
-  if(trail.length>100)trail.shift();
-});
-
-/* ── Animation loop ── */
-const t0=performance.now();
-function draw(now){
-  const el=(now-t0)/1000;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  /* stars */
-  for(const s of stars){
-    const a=s.bA*(0.3+0.7*Math.abs(Math.sin(el*s.spd*55+s.off)));
-    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle=s.col+a.toFixed(2)+')';ctx.fill();
-    /* sparkle cross on big bright stars */
-    if(s.r>1.3&&a>0.55){
-      ctx.strokeStyle=s.col+(a*0.3).toFixed(2)+')';
-      ctx.lineWidth=0.4;
-      const arm=s.r*2.8;
-      ctx.beginPath();ctx.moveTo(s.x-arm,s.y);ctx.lineTo(s.x+arm,s.y);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(s.x,s.y-arm);ctx.lineTo(s.x,s.y+arm);ctx.stroke();
+// ── CURSOR TRAIL — desktop only ──
+if (!('ontouchstart' in window)) {
+  const colors = ['#1cd6e7','#8051c8','#f62bd1','#f4a749','#f8f5ff'];
+  let moveCount = 0;
+  document.addEventListener('mousemove', e => {
+    moveCount++;
+    const dot = document.createElement('div');
+    dot.className = 'cursor-dot';
+    const size = 4 + Math.random() * 5;
+    const color = colors[Math.floor(Math.random()*colors.length)];
+    dot.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:${size}px;height:${size}px;background:${color};box-shadow:0 0 6px ${color};`;
+    document.body.appendChild(dot);
+    setTimeout(() => dot.remove(), 600);
+    if (moveCount % 12 === 0) {
+      const spark = document.createElement('div');
+      spark.className = 'cursor-sparkle';
+      spark.textContent = '✦';
+      spark.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;color:${color};`;
+      document.body.appendChild(spark);
+      setTimeout(() => spark.remove(), 800);
     }
-  }
-
-  /* cursor trail */
-  for(let i=trail.length-1;i>=0;i--){
-    const p=trail[i];
-    p.a-=p.dec;p.x+=p.vx;p.y+=p.vy;
-    if(p.a<=0){trail.splice(i,1);continue}
-    const rgb=RGBA[p.c]||[255,255,255];
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r*Math.max(p.a,0.05),0,Math.PI*2);
-    ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${p.a.toFixed(2)})`;
-    ctx.fill();
-  }
-
-  requestAnimationFrame(draw);
+  });
 }
-requestAnimationFrame(draw);
 
-/* ── Steps data ── */
-const steps={
-  sel:[
-    {n:1,title:"Observe Current Reality",desc:"Before you can leave a timeline, you must see it clearly. Step back from your life as if watching a film and witness your current circumstances, patterns, and results without judgment or attachment.",tips:["Journaling your current reality as a neutral observer","Noticing where you feel contracted vs. expanded","Identifying the gap between where you are and where you want to be"],tipsTitle:"Practices for this step"},
+// ── TAP RIPPLE — mobile only ──
+if ('ontouchstart' in window) {
+  document.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    const r = document.createElement('div');
+    r.style.cssText = `position:fixed;left:${t.clientX-30}px;top:${t.clientY-30}px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(28,214,231,0.45) 0%,transparent 70%);pointer-events:none;z-index:9999;transform:scale(0);animation:tapRipple 0.5s ease forwards;`;
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 500);
+  }, { passive: true });
+}
+
+// ── STEPS DATA ──
+const steps = {
+  sel: [
+    {n:1,title:"Observe Current Reality",desc:"Before you can leave a timeline, you must see it clearly. Step back from your life as if watching a film and witness your current circumstances, patterns, and results without judgment or attachment.",tips:["Journaling your current reality as a neutral observer","Noticing where you feel contracted vs expanded","Identifying the gap between where you are and where you want to be"],tipsTitle:"Practices for this step"},
     {n:2,title:"Identify Habits, Patterns & Beliefs",desc:"The current timeline is held in place by an invisible architecture of thoughts, habits, and beliefs. This step maps that architecture so you can consciously choose to leave it behind.",tips:["List the top 5 beliefs that define your current reality","Trace recurring patterns back to their emotional root","Notice which identity statements you make daily"],tipsTitle:"Practices for this step"},
     {n:3,title:"Grieve & Release",desc:"You cannot fully inhabit a new timeline while still emotionally tethered to the old one. Grief is not weakness. It is the energetic act of completion that creates the spaciousness for something new.",tips:["Allow sadness, anger, or fear to move through without suppression","Write a letter to the old version of your life and release it","Notice what you are afraid to let go of, as that is where the work is"],tipsTitle:"Practices for this step"},
     {n:4,title:"Define the New Reality",desc:"Articulate your chosen timeline with precision and sensory richness. The clearer and more emotionally vivid your vision, the stronger the energetic signal you transmit.",tips:["Write your new reality in present tense, as if already true","Include emotions, textures, relationships, and daily details","Return to this vision daily to deepen its signal"],tipsTitle:"Practices for this step"},
@@ -507,110 +432,66 @@ const steps={
     {n:6,title:"Establish the Emotional Signature",desc:"Every timeline has a distinct emotional frequency. The new timeline is not reached by force. It is reached by becoming a vibrational match to it before it physically manifests.",tips:["Identify the 3 dominant emotions of your new timeline","Practice generating those emotions in your body daily","Notice which current activities amplify those feelings"],tipsTitle:"Practices for this step"},
     {n:7,title:"Create Timeline Anchors",desc:"Timeline anchors are physical, sensory, or ritual cues that keep you stabilized in the frequency of your new reality even when external evidence has not yet caught up.",tips:["Choose an object, scent, or image that represents your new timeline","Create a morning ritual that activates your new identity","Design environmental cues that signal the new reality to your nervous system"],tipsTitle:"Practices for this step"},
   ],
-  act:[
-    {n:8,title:"Decide & Move Into Action",desc:"The jump requires a commitment that is non-negotiable. This is the moment of true decision, not as a thought experiment, but as an irreversible internal shift that reorganizes how you show up.",tips:["Make one bold, visible move toward your new timeline","Communicate your commitment to someone who will hold you to it","Eliminate one major drain from your old timeline"],tipsTitle:"Practices for this step"},
-    {n:9,title:"Activate Your Energy",desc:"Energy is the fuel of the jump. This step focuses on raising your physical and emotional vitality to match the amplitude required to land in a new timeline.",tips:["Identify and eliminate the top 3 energy drains in your life","Introduce a daily energy-activation practice such as movement or breathwork","Notice when you are in expansion vs. contraction and choose accordingly"],tipsTitle:"Practices for this step"},
+  act: [
+    {n:8,title:"Activate Your Energy",desc:"Energy is the fuel of the jump. This step focuses on raising your physical and emotional vitality to match the amplitude required to land in a new timeline.",tips:["Identify and eliminate the top 3 energy drains in your life","Introduce a daily energy-activation practice such as movement or breathwork","Notice when you are in expansion vs contraction and choose accordingly"],tipsTitle:"Practices for this step"},
+    {n:9,title:"Decide & Move Into Action",desc:"The jump requires a commitment that is non-negotiable. This is the moment of true decision, not as a thought experiment, but as an irreversible internal shift that reorganizes how you show up.",tips:["Make one bold, visible move toward your new timeline","Communicate your commitment to someone who will hold you to it","Eliminate one major drain from your old timeline"],tipsTitle:"Practices for this step"},
   ],
-  stab:[
+  stab: [
     {n:10,title:"Embody Your New State Daily",desc:"Landing in a new timeline is one thing. Staying there requires consistent embodiment. This step is about making your new identity and frequency your default, not your performance.",tips:["Practice being your future self in low-stakes moments first","Notice when you slip back into old patterns and return without self-judgment","Build evidence by acknowledging every aligned moment"],tipsTitle:"Practices for this step"},
     {n:11,title:"Reinforce With Evidence",desc:"Your nervous system learns through repetition and proof. Actively document every moment where your new timeline is showing up, no matter how small, to build a new evidence base.",tips:["Keep a proof-of-new-reality journal and record aligned synchronicities","Share your evidence with someone on a similar path","Use the growing evidence to deepen trust in the process"],tipsTitle:"Practices for this step"},
     {n:12,title:"Stabilize Your Energy Daily",desc:"The final step is ongoing: a committed daily practice of returning to the emotional and energetic signature of your chosen timeline so that it becomes the body's baseline, not the exception.",tips:["Design a non-negotiable daily stabilization practice","Audit your environment quarterly for anything pulling you back","Celebrate 30, 60, and 90-day milestones of living your new timeline"],tipsTitle:"Practices for this step"},
+    {n:'✦',title:"Continue With the Stabilization Tools",desc:"The 12 steps are the framework. The Stabilization Tools are what keep you anchored until your new timeline fully snaps into physical form. This is where the deeper work lives — the daily practices, the intuition toolkit, the energy clearing protocols, and the ongoing support inside Timeline Jumpers.",tips:["The Daily Jumper Practice keeps your frequency locked in","The Intuition Development Toolkit helps you recognize divine guidance","The Evidence Log trains your brain to see what is already arriving"],tipsTitle:"What you get access to"},
   ]
 };
 
-const phaseColors={sel:['#1cd6e7','Selection'],act:['#f62bd1','Activation'],stab:['#8051c8','Stabilization']};
+const phaseColors = { sel:['#1cd6e7','Selection'], act:['#f62bd1','Activation'], stab:['#8051c8','Stabilization'] };
 
-function renderSteps(){
-  ['sel','act','stab'].forEach(phase=>{
-    const el=document.getElementById(phase+'-steps');
-    steps[phase].forEach(s=>{
-      const li=document.createElement('li');
-      li.className='step-item';
-      li.innerHTML=`<span class="step-num">${s.n}</span><span class="step-text">${s.title}</span>`;
-      li.addEventListener('click',()=>openModal(phase,s));
+function renderSteps() {
+  ['sel','act','stab'].forEach(phase => {
+    const el = document.getElementById(phase + '-steps');
+    steps[phase].forEach(s => {
+      const li = document.createElement('li');
+      li.className = 'step-item';
+      li.innerHTML = `<span class="step-pill">${s.n}</span><span class="step-label">${s.title}</span>`;
+      li.addEventListener('click', () => openModal(phase, s));
       el.appendChild(li);
     });
   });
 }
 
-function openModal(phase,step){
-  const [color,phaseName]=phaseColors[phase];
-  const badge=document.getElementById('modal-badge');
-  badge.textContent='✦ '+phaseName.toUpperCase()+' ✦';
-  badge.style.background=color;
-  const numEl=document.getElementById('modal-step-num');
-  numEl.textContent='0'+step.n;
-  numEl.style.background=`linear-gradient(135deg,${color},#8051c8)`;
-  numEl.style.webkitBackgroundClip='text';
-  numEl.style.backgroundClip='text';
-  numEl.style.color='transparent';
-  document.getElementById('modal-title').textContent=step.title;
-  document.getElementById('modal-title').style.color=color;
-  document.getElementById('modal-desc').textContent=step.desc;
-  document.getElementById('modal-tips-box').style.borderLeftColor=color;
-  document.getElementById('modal-tips-title').textContent=step.tipsTitle;
-  document.getElementById('modal-tips-title').style.color=color;
-  const tipsList=document.getElementById('modal-tips-list');
-  tipsList.innerHTML='';
-  step.tips.forEach(t=>{
-    const li=document.createElement('li');
-    li.innerHTML=`<span style="color:${color}">✦</span><span>${t}</span>`;
+function openModal(phase, step) {
+  const [color, phaseName] = phaseColors[phase];
+  const badge = document.getElementById('modal-badge');
+  badge.textContent = '✦ ' + phaseName.toUpperCase() + ' ✦';
+  badge.style.background = color;
+  const numEl = document.getElementById('modal-step-num');
+  numEl.textContent = '0' + step.n;
+  document.getElementById('modal-title').textContent = step.title;
+  document.getElementById('modal-title').style.color = color;
+  document.getElementById('modal-desc').textContent = step.desc;
+  document.getElementById('modal-tips-box').style.borderLeftColor = color;
+  const tTitle = document.getElementById('modal-tips-title');
+  tTitle.textContent = step.tipsTitle;
+  tTitle.style.color = color;
+  const tipsList = document.getElementById('modal-tips-list');
+  tipsList.innerHTML = '';
+  step.tips.forEach(t => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span style="color:${color}">✦</span><span>${t}</span>`;
     tipsList.appendChild(li);
   });
   document.getElementById('modal').classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
 }
-function closeModal(){
+
+function closeModal() {
   document.getElementById('modal').classList.remove('open');
-  document.body.style.overflow='';
-}
-document.getElementById('modal-close').addEventListener('click',closeModal);
-document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-
-/* ── Touch device: hide cursor ring ── */
-const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-if(isTouchDevice){
-  document.body.style.cursor='auto';
-  const dot=document.getElementById('cursor-dot');
-  if(dot)dot.style.display='none';
+  document.body.style.overflow = '';
 }
 
-/* ── Tap ripple ── */
-function spawnRipple(x,y){
-  const size=Math.random()*60+80;
-  const el=document.createElement('div');
-  el.className='tap-ripple';
-  el.style.cssText=`
-    left:${x}px;top:${y}px;
-    width:${size}px;height:${size}px;
-    border:2px solid rgba(244,224,96,0.85);
-    box-shadow:0 0 12px rgba(244,224,96,0.5),inset 0 0 8px rgba(244,224,96,0.15);
-    animation-duration:${0.55+Math.random()*0.25}s;
-  `;
-  document.body.appendChild(el);
-  el.addEventListener('animationend',()=>el.remove());
-  // second slightly delayed ring
-  const el2=document.createElement('div');
-  el2.className='tap-ripple';
-  el2.style.cssText=`
-    left:${x}px;top:${y}px;
-    width:${size*0.55}px;height:${size*0.55}px;
-    border:1.5px solid rgba(244,200,80,0.6);
-    box-shadow:0 0 8px rgba(244,200,80,0.3);
-    animation-duration:${0.45+Math.random()*0.2}s;
-    animation-delay:0.07s;
-  `;
-  document.body.appendChild(el2);
-  el2.addEventListener('animationend',()=>el2.remove());
-}
-
-document.addEventListener('click',e=>{
-  spawnRipple(e.clientX,e.clientY);
-});
-document.addEventListener('touchstart',e=>{
-  Array.from(e.touches).forEach(t=>spawnRipple(t.clientX,t.clientY));
-},{passive:true});
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 renderSteps();
 </script>
